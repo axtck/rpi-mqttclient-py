@@ -13,11 +13,14 @@ def on_message(client, userdata, msg):
     command = json.loads(msg.payload)
 
     # Get pin and status value.
-    pin = int(command['pin']) 
-    status = command['status']
+    try:
+        pin = int(command['pin']) 
+        status = command['status']
+        write_gpio(pin, status)
+    except:
+        print('Could not parse')
 
     # Call write_gpio to write pin.
-    write_gpio(pin, status)
 
     print(f'On message\nTopic: {msg.topic}\nPayload: {str(msg.payload)}\n')
 
@@ -59,7 +62,7 @@ client.connect(mqtt_host, mqtt_port, 60)
 client.subscribe(output_topic)
 
 
-
+# Function for writing output
 def write_gpio(pin, status):
     GPIO.setmode(GPIO.BCM)
     GPIO.setwarnings(False)
@@ -70,25 +73,29 @@ def write_gpio(pin, status):
         GPIO.output(pin, GPIO.LOW)
 
 # GPIO setup.
-def input_gpio_setup(pin):
-    GPIO.setmode(GPIO.BCM)
-    GPIO.setwarnings(False)
-    # Declare as input.
-    GPIO.setup(pin, GPIO.IN)
+def input_gpio_setup(pins):
+    for pin in pins:
+        GPIO.setmode(GPIO.BCM)
+        GPIO.setwarnings(False)
+        # Declare as input.
+        GPIO.setup(pin, GPIO.IN)
 
 # Declare pin.
-input_pin = 21
+input_pins = [20, 21] 
 # Call setup.
-input_gpio_setup(input_pin)
+input_gpio_setup(input_pins)
 
 # Start loop.
 client.loop_start()
 # Loop.
 while True:
-    if GPIO.input(input_pin):
-        client.publish(input_topic, 'HIGH')
-    else:
-        client.publish(input_topic, 'LOW')
+    for pin in input_pins:
+        # If pin is high
+        if GPIO.input(pin):
+            client.publish(input_topic, json.dumps({'pin':pin,'status':True}))
+        else:
+            client.publish(input_topic, json.dumps({'pin': pin, 'status': False}))
+        time.sleep(2)
     time.sleep(10)
 
 # Disconnect.
