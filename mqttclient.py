@@ -3,19 +3,19 @@ import time
 
 # On connent callback. 
 def on_connect(client, userdata, flags, rc):
-    print(f'Connected with result code {str(rc)}')
+    print(f'Connected with result code {str(rc)}.\n')
 
 # On message callback.
 def on_message(client, userdata, msg):
-    print(f'Message\nTopic: {msg.topic}:\nPayload: {str(msg.payload)}.')
+    print(f'Message\nTopic: {msg.topic}\nPayload: {str(msg.payload)}.\n')
 
 # On publish callback.
 def on_publish(client, obj, mid):
-    print(f'Mid: {str(mid)}')
+    print(f'On publish\nMessage ID: {str(mid)}.\n')
 
 # On subscribe callback.
 def on_subscribe(client, obj, mid, grated_qos):
-    print(f'Subbed: {str(obj)}')
+    print(f'On subscribe:\nMessage ID: {str(mid)}\n')
 
 
 # Create client.
@@ -45,10 +45,14 @@ client.connect(mqtt_host, mqtt_port, 60)
 # Subscribe.
 client.subscribe(topic)
 
-# client.loop_forever()
+rpi_gpio_1 = 5
 
-# Continue the network loop, exit when an error occurs
-rc = 0
-while rc == 0:
-    rc = client.loop()
-print(f'rc: {str(rc)}')
+# Start loop.
+client.loop_start()
+# Loop.
+while True:
+    # gpiostatus = rpi_gpio_1.read() # Change with function to read pin status
+    # client.publish(topic, gpiostatus)
+    time.sleep(10)
+client.loop_stop()
+client.disconnect()
